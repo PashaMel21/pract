@@ -1,0 +1,77 @@
+<input type="file" id="upload" multiple>
+<div class="display"></div>
+<script>
+  const display = document.querySelector(".display");
+  const input = document.querySelector("#upload");
+
+  input.addEventListener("change", () => {
+
+    // Пройтися по всіх вибраних файлах
+    for (let i = 0; i < input.files.length; i++) {
+      let reader = new FileReader();
+      reader.readAsDataURL(input.files[i]);
+      reader.addEventListener("load", () => {
+        // Створити новий елемент div з зображенням та кнопкою видалення
+        let imgContainer = document.createElement("div");
+        imgContainer.classList.add("img-container");
+
+        let img = new Image();
+        img.src = reader.result;
+
+        img.onload = () => {
+          // Створення canvas елемента
+          let canvas = document.createElement("canvas");
+          let ctx = canvas.getContext("2d");
+
+          // Встановлення розмірів canvas елемента
+          let width = img.width;
+          let height = img.height;
+          let scale = 1;
+
+          if (width > 500 || height > 500) {
+            if (width > height) {
+              scale = 500 / width;
+            } else {
+              scale = 500 / height;
+            }
+            width *= scale;
+            height *= scale;
+          }
+
+          canvas.width = width;
+          canvas.height = height;
+
+          // Малювання зображення на canvas елементі
+          ctx.drawImage(img, 0, 0, width, height);
+
+          // Конвертація canvas елемента до URL-адреси зображення
+          let editedImageUrl = canvas.toDataURL();
+
+          // Додавання елементів до сторінки
+          imgContainer.innerHTML = `
+            <img src="${editedImageUrl}" alt="">
+            <button class="delete-btn">Видалити</button>
+            <a class="download-btn" href="${URL.createObjectURL(input.files[i])}" download="image.png">Завантажити</a>
+          `;
+
+          // Додати посилання на завантажений файл
+          let fileUrl = URL.createObjectURL(input.files[i]);
+          let link = document.createElement("a");
+          link.href = fileUrl;
+          link.target = "_blank"; // Встановлюємо target="_blank"
+          link.textContent = fileUrl; // Замінюємо "Завантажити" на посилання
+          imgContainer.appendChild(link);
+
+          // Додати новий елемент до відображення
+          display.appendChild(imgContainer);
+
+          // Додати обробник події для кнопки видалення
+          let deleteBtn = imgContainer.querySelector(".delete-btn");
+          deleteBtn.addEventListener("click", () => {
+            imgContainer.remove();
+          });
+        };
+      });
+    }
+  });
+</script>
